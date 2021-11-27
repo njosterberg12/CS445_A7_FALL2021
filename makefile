@@ -2,9 +2,9 @@ BIN = parser
 CC = g++
 EXE = c-
 
-FILS = treeNodes.c symbolTable.cpp semantic.cpp IO.c errors.c yyerror.cpp
+FILS = treeNodes.c symbolTable.cpp semantic.cpp IO.c errors.c yyerror.cpp emitcode.cpp codeGen.c
 SRCS = $(BIN).y  $(BIN).l
-HDRS = scanType.h treeNodes.h symbolTable.h semantic.h IO.h yyerror.h
+HDRS = scanType.h treeNodes.h symbolTable.h semantic.h IO.h yyerror.h emitcode.h codeGen.h
 OBJS = lex.yy.o $(BIN).tab.o
 
 $(BIN) : $(OBJS)

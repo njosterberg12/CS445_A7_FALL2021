@@ -1,0 +1,8 @@
+// C-F21
+main()
+{
+     outputb(not true);
+     outnl();
+     outputb(not false);
+     outnl();
+}

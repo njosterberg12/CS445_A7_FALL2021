@@ -1,0 +1,11 @@
+// C-F21
+int cat()
+{
+    return 93;
+}
+
+main()
+{
+    output(cat());
+    outnl();
+}
