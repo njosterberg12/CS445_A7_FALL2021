@@ -122,7 +122,8 @@ void unaryOpCode(TreeNode* tree)
    }
    else if(!strcmp(tree->attr.name, "?"))
    {
-
+      treeTargetCode(tree->child[0]);
+      emitRO((char *)"RND", 3, 3, 6, (char *)"Op ?");
    }
    else if(!strcmp(tree->attr.name, "*"))
    {
@@ -130,7 +131,9 @@ void unaryOpCode(TreeNode* tree)
    }
    else if(!strcmp(tree->attr.name, "not"))
    {
-
+      treeTargetCode(tree->child[0]);
+      emitRM((char *)"LDC", 4, 1, 6, (char *)"Load 1");
+      emitRO((char *)"XOR", 3, 3, 4, (char *)"Op NOT");
    }
    else
    {
@@ -140,15 +143,55 @@ void unaryOpCode(TreeNode* tree)
 
 void binaryOpCode(TreeNode* tree)
 {
-   if(!strcmp(tree->attr.name, "or") || !strcmp(tree->attr.name, "and"))
-   {
-      
-   }
-   else if(!strcmp(tree->attr.name, "<") || !strcmp(tree->attr.name, ">") || !strcmp(tree->attr.name, "=") || !strcmp(tree->attr.name, ">=") || !strcmp(tree->attr.name, "<=") || !strcmp(tree->attr.name, "><"))
+   if(!strcmp(tree->attr.name, "or")
    {
 
    }
-   else if(!strcmp(tree->attr.name, "+") || !strcmp(tree->attr.name, "-") || !strcmp(tree->attr.name, "*") || !strcmp(tree->attr.name, "/") || !strcmp(tree->attr.name, "%"))
+   else if(!strcmp(tree->attr.name, "and"))
+   {
+      
+   }
+   else if(!strcmp(tree->attr.name, "<"))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, ">"))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "="))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, ">="))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "<="))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "><"))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "+"))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "-"))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "*"))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "/"))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "%"))
    {
 
    }
@@ -180,7 +223,11 @@ void unaryAsgnCode(TreeNode* tree)
    {
 
    }
-   else if(!strcmp(tree->attr.name, "++") || !strcmp(tree->attr.name, "--"))
+   else if(!strcmp(tree->attr.name, "++"))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "--"))
    {
 
    }
@@ -192,9 +239,21 @@ void unaryAsgnCode(TreeNode* tree)
 
 void binaryAsgnCode(TreeNode* tree)
 {
-   if(!strcmp(tree->attr.name, "+=") || !strcmp(tree->attr.name, "-=") || !strcmp(tree->attr.name, "*=") || !strcmp(tree->attr.name, "/="))
+   if(!strcmp(tree->attr.name, "+="))
    {
 
+   }
+   else if(!strcmp(tree->attr.name, "-="))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "*="))
+   {
+
+   }
+   else if(!strcmp(tree->attr.name, "/="))
+   {
+      
    }
    else if(!strcmp(tree->attr.name, ":="))
    {
