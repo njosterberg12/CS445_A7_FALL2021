@@ -116,6 +116,7 @@ void treeTargetCode(TreeNode* tree)
 
 void unaryOpCode(TreeNode* tree)
 {
+   int fp;
    if(!strcmp(tree->attr.name, "-"))
    {
 
@@ -143,6 +144,7 @@ void unaryOpCode(TreeNode* tree)
 
 void binaryOpCode(TreeNode* tree)
 {
+   int fp;
    if(!strcmp(tree->attr.name, "or")
    {
 
@@ -207,6 +209,7 @@ void binaryOpCode(TreeNode* tree)
 
 void unaryAsgnCode(TreeNode* tree)
 {
+   int fp;
    if(!strcmp(tree->attr.name, "-"))
    {
 
@@ -225,11 +228,15 @@ void unaryAsgnCode(TreeNode* tree)
    }
    else if(!strcmp(tree->attr.name, "++"))
    {
-
+      treeTargetCode(tree->child[0]);
+      emitRM((char *)"LDA", 3, 1, 3, (char *)"Inc");
+      emitRM((char *)"ST", 3, tree->child[0]->offset, fp, (char *)"Store var ");
    }
    else if(!strcmp(tree->attr.name, "--"))
    {
-
+      treeTargetCode(tree->child[0]);
+      emitRM((char *)"LDA", 3, 1, 3, (char *)"Dec");
+      emitRM((char *)"ST", 3, tree->child[0]->offset, fp, (char *)"Store var ");
    }
    else
    {
@@ -239,30 +246,56 @@ void unaryAsgnCode(TreeNode* tree)
 
 void binaryAsgnCode(TreeNode* tree)
 {
+   int fp;
    if(!strcmp(tree->attr.name, "+="))
    {
-
+      fp = frame(tree);
+      treeTargetCode(tree->child[1]);
+      emitRM((char *)"LD", 4, tree->child[0]->offset, fp, (char *) "Load LHS");
+      emitRO((char *)"ADD", 3, 4, 3, (char *)"Op +=");
+      emitRM((char *)"ST", 3, tree->child[0]->offset, fp, (char *)"Store left ");
    }
    else if(!strcmp(tree->attr.name, "-="))
    {
-
+      fp = frame(tree);
+      treeTargetCode(tree->child[1]);
+      emitRM((char *)"LD", 4, tree->child[0]->offset, fp, (char *) "Load LHS");
+      emitRO((char *)"SUB", 3, 4, 3, (char *)"Op -=");
+      emitRM((char *)"ST", 3, tree->child[0]->offset, fp, (char *)"Store left ");
    }
    else if(!strcmp(tree->attr.name, "*="))
    {
-
+      fp = frame(tree);
+      treeTargetCode(tree->child[1]);
+      emitRM((char *)"LD", 4, tree->child[0]->offset, fp, (char *) "Load LHS");
+      emitRO((char *)"MUL", 3, 4, 3, (char *)"Op *=");
+      emitRM((char *)"ST", 3, tree->child[0]->offset, fp, (char *)"Store left ");
    }
    else if(!strcmp(tree->attr.name, "/="))
    {
-      
+      fp = frame(tree);
+      treeTargetCode(tree->child[1]);
+      emitRM((char *)"LD", 4, tree->child[0]->offset, fp, (char *) "Load LHS");
+      emitRO((char *)"DIV", 3, 4, 3, (char *)"Op /=");
+      emitRM((char *)"ST", 3, tree->child[0]->offset, fp, (char *)"Store left ");
    }
    else if(!strcmp(tree->attr.name, ":="))
    {
-
+      treeTargetCode(tree);
    }
    else
    {
       printf("NOT IN TARGET BINARY ASSIGNS\n");
    }
+}
 
-
+int frame(TreeNode* tree)
+{
+   TreeNode* tmp = tree->child[0];
+   tmp = st.lookupNode(tmp->attr.name);
+   if(tree->child[0]->isStatic || tmp != NULL)
+   {
+      return 0;
+   }
+   return 1;
 }
