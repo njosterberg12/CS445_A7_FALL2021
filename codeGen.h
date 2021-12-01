@@ -8,9 +8,9 @@
 
 extern int emitLoc;
 
-void IOSetup(TreeNode* tree);
+void codeGen(TreeNode *t, char* outFile);
+void codeGenIO();
 void treeTargetCode(TreeNode* tree);
-void init();
 void unaryOpCode(TreeNode* tree);
 void binaryOpCode(TreeNode* tree);
 void unaryAsgnCode(TreeNode* tree);
