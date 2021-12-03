@@ -101,7 +101,15 @@ void treeTargetCode(TreeNode* tree)
                //emitComment((char *)"Assign");
                break;
             case InitK:
-               //emitComment((char *)"Init");
+               /*emitComment((char *)"INIT");
+               emitRM((char *)"LDA", 1, 0, 0, (char *)"set first frame at end of globals");
+               emitRM((char *)"ST", 1, 0, 1, "store old fp (point to self)");
+               emitComment((char *)"INIT GLOBALS AND STATICS");
+               emitComment((char *)"END INIT GLOBALS AND STATICS");
+               emitRM((char *)"LDA", 3, 1, 7, (char *)"Return address in ac");
+               emitRM((char *)"JMP", 7, -9, 7, "Jump to main");
+               emitRM((char *)"HALT", 0, 0, 0, "DONE!");
+               emitComment((char *)"END INIT");*/
                break;
             case CallK:
                //emitComment((char *)"Call");
@@ -145,7 +153,17 @@ void treeTargetCode(TreeNode* tree)
                emitRM((char *)"LD", 1, 0, 1, (char *)"Adjust fp");
                emitRM((char *)"JMP", 7, 0, 3, (char *)"Return");
                emitComment((char *)"END FUNCTION", tree->attr.name);
+               //emitRM((char *)"JMP", 7, 43, 7, (char *)"Jump to init [backpatch]");
                toffset = ghost;
+               emitComment((char *)"INIT");
+               emitRM((char *)"LDA", 1, 0, 0, (char *)"set first frame at end of globals");
+               emitRM((char *)"ST", 1, 0, 1, "store old fp (point to self)");
+               emitComment((char *)"INIT GLOBALS AND STATICS");
+               emitComment((char *)"END INIT GLOBALS AND STATICS");
+               emitRM((char *)"LDA", 3, 1, 7, (char *)"Return address in ac");
+               emitRM((char *)"JMP", 7, -9, 7, "Jump to main");
+               emitRM((char *)"HALT", 0, 0, 0, "DONE!");
+               emitComment((char *)"END INIT");
                //emitComment((char *)"Function", tree->attr.name);
                break;}
             case ParamK:
@@ -364,6 +382,7 @@ void codeGenIO()
    //tmp = st.lookupNode("input");
    //tmp->startLoc = emitSkip(0);
    //emitLoc = emitLoc + 1;
+   emitRM((char *)"JMP", 7, 43, 7, (char *)"Jump to init [backpatch]");
 
    emitComment((char *)"FUNCTION input");
    emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");

@@ -4,6 +4,7 @@
 * File compiled:  a00.c-
 * 
 * ** ** ** ** ** ** ** ** ** ** ** **
+  0:    JMP  7,43(7)	Jump to init [backpatch] 
 * FUNCTION input
   1:     ST  3,-1(1)	Store return address 
   2:     IN  2,2,2	Grab int input 
@@ -84,3 +85,12 @@
  42:     LD  1,0(1)	Adjust fp 
  43:    JMP  7,0(3)	Return 
 * END FUNCTION main
+* INIT
+ 44:    LDA  1,0(0)	set first frame at end of globals 
+ 45:     ST  1,0(1)	store old fp (point to self) 
+* INIT GLOBALS AND STATICS
+* END INIT GLOBALS AND STATICS
+ 46:    LDA  3,1(7)	Return address in ac 
+ 47:    JMP  7,-9(7)	Jump to main 
+ 48:   HALT  0,0(0)	DONE! 
+* END INIT
