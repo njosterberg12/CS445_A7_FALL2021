@@ -8,8 +8,9 @@
 
 extern int emitLoc;
 
-void codeGen(TreeNode *t, char* outFile);
+void codeGen(TreeNode* t, char* outFile, char*);
 void codeGenIO();
+void codeGenMain(TreeNode* t);
 void treeTargetCode(TreeNode* tree);
 void unaryOpCode(TreeNode* tree);
 void binaryOpCode(TreeNode* tree);

@@ -6,6 +6,7 @@
 //*************************************************************/
 #include "scanType.h" // tokenData type
 #include "treeNodes.h"
+#include "codeGen.h"
 #include <getopt.h>
 #include <stdio.h>
 #include <iostream>
@@ -14,7 +15,6 @@
 #include <string.h>
 #include "semantic.h"
 #include "IO.h"
-#include "codeGen.h"
 #include "yyerror.h"
 
 #define YYERROR_VERBOSE
@@ -33,7 +33,7 @@ int Goffset = 0;
 
 bool displayOffset = false;
 
-FILE * code;
+extern FILE * code;
 
 bool m;
 /*void yyerror(const char *msg)
@@ -730,7 +730,7 @@ int main(int argc, char *argv[])
    }
    if(numErrors == 0)
    {
-      genCode(syntaxTree, "w");
+      codeGen(syntaxTree, "w", argv[argc - 1]);
    }
    //printTree(syntaxTree, 0);
 

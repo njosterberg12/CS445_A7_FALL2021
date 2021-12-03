@@ -18,7 +18,7 @@ extern FILE *code;
 
 
 //  TM location number for current instruction emission
-static int emitLoc = 0;   // next empty slot in Imem growing to lower memory
+static int emitLoc = 1;   // next empty slot in Imem growing to lower memory //////////////////////////////////// changed emitLoc = 0 to emitLoc = 1;
 static int litLoc = 1;    // next empty slot in Dmem growing to higher memory
 
 
@@ -56,7 +56,7 @@ void emitComment(char *c)
 // 
 void emitRO(char *op, long long int r, long long int s, long long int t, char *c, char *cc)
 {
-    fprintf(code, "%3d:  %5s  %lld,%lld,%lld\t%s %s\n", emitLoc, op, r, s, t, c, cc);
+    fprintf(code, "%3d:  %5s  %lld,%lld,%lld\t%s %s\n", emitLoc, op, r, s, t, c, cc); // added emitLoc + 1
     fflush(code);
     emitLoc++;
 }
@@ -77,7 +77,7 @@ void emitRO(char *op,long long int r,long long int s,long long int t, char *c)
 // 
 void emitRM(char *op, long long int r, long long int d, long long int s, char *c, char *cc)
 {
-    fprintf(code, "%3d:  %5s  %lld,%lld(%lld)\t%s %s\n", emitLoc, op, r, d, s, c, cc);
+    fprintf(code, "%3d:  %5s  %lld,%lld(%lld)\t%s %s\n", emitLoc, op, r, d, s, c, cc); // added emitLoc + 1
     fflush(code);
     emitLoc++;
 }
