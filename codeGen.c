@@ -7,6 +7,7 @@ extern SymbolTable st;
 FILE * code;
 int toffset = 0;
 TreeNode* temp;
+int ghost;
 
 void codeGen(TreeNode* tree, char* outFile, char* fileComp)
 {
@@ -92,7 +93,11 @@ void treeTargetCode(TreeNode* tree)
                //emitComment((char *)"Op");
                break;
             case ConstantK:
-               //emitComment((char *)"Constant");
+               if(tree->expType == Integer)
+               {
+                  emitComment((char *)"Bool Const");
+                  emitRM((char *)"LDC", 3, tree->attr.value, 6, (char *)"Load int const");
+               }
                break;
             case IdK:
                //emitComment((char *)"Id");
@@ -112,7 +117,23 @@ void treeTargetCode(TreeNode* tree)
                emitComment((char *)"END INIT");*/
                break;
             case CallK:
-               //emitComment((char *)"Call");
+               emitComment((char *)"Call");
+
+               emitRM((char *)"ST", 1, ghost, 1, (char *)"Store fp in ghost frame for ", tree->attr.name);
+               tmp = tree->child[0]; // parameter
+               while(tmp != NULL)
+               {
+                  emitComment((char *)"Param ", tree->attr.name);
+                  if(tmp->subkind.exp == ConstantK)
+                  {
+                     if(tmp->expType == Integer)
+                     {
+                        emitRM((char *)"LDC", 3, tmp->attr.value, 6, (char *)"Load int const");
+                     }
+                  }
+                  emitRM((char *)"ST", 3, ghost - 2, 1, (char *)"Store Param"); // endOfFrame - 2, 
+                  tmp = tmp->sibling;
+               }
                break;
             default:
                printf("Unknown Exp LINE %d", tree->lineno);
