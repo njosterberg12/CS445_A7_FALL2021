@@ -26,4 +26,4 @@ clean :
 	rm -f *~ $(OBJS) $(EXE) lex.yy.c $(BIN).tab.h $(BIN).tab.c $(BIN).output
 
 tar : $(HDRS) $(SRCS) $(GCC) makefile
-	tar -cvf $(BIN).tar $(HDRS) $(SRCS) $(FILS) makefile tm.c
+	tar -cvf $(BIN).tar $(HDRS) $(SRCS) $(FILS) makefile

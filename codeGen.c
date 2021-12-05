@@ -9,15 +9,15 @@ int toffset = 0;
 TreeNode* temp;
 int ghost;
 
-void codeGen(TreeNode* tree, char* outFile, char* fileComp)
+void codeGen(TreeNode* tree, char* passedFile)
 {
-   code = fopen(outFile, "w");
+   code = fopen(passedFile, "w");
 
    // header comment
    emitComment((char *)"C- compiler version C-F21");
    emitComment((char *)"Built: Dec 3, 2021");
    emitComment((char *)"Author: Nathaniel Osterberg");
-   emitComment((char *)"File compiled: ", fileComp); ////////////////// need to add file compiled
+   emitComment((char *)"File compiled: ", passedFile); ////////////////// need to add file compiled
    emitComment((char *)"");
 
    emitComment((char *)"** ** ** ** ** ** ** ** ** ** ** **");
@@ -60,6 +60,7 @@ void treeTargetCode(TreeNode* tree)
             case CompoundK:
                emitComment((char *)"COMPOUND");
                emitComment((char *)"TOFF set:", toffset);
+               emitComment((char *)"Compound Body");
                for(int i = 0; i <= 2; i++)
                {
                   if(tree != NULL)
@@ -67,7 +68,6 @@ void treeTargetCode(TreeNode* tree)
                      treeTargetCode(tree->child[i]);
                   }
                }
-               emitComment((char *)"Compound Body");
                emitComment((char *)"TOFF set:", toffset);
                emitComment((char *)"END COMPOUND");
                break;
@@ -87,6 +87,7 @@ void treeTargetCode(TreeNode* tree)
       }
       else if(tree->nodekind == ExpK)
       {
+         emitComment((char *)"EXPRESSION");
          switch(tree->subkind.exp)
          {
             case OpK:
@@ -95,8 +96,7 @@ void treeTargetCode(TreeNode* tree)
             case ConstantK:
                if(tree->expType == Integer)
                {
-                  emitComment((char *)"Bool Const");
-                  emitRM((char *)"LDC", 3, tree->attr.value, 6, (char *)"Load int const");
+                  emitRM((char *)"LDC", 3, tree->attr.value, 6, (char *)"Load integer const");
                }
                break;
             case IdK:
@@ -117,21 +117,21 @@ void treeTargetCode(TreeNode* tree)
                emitComment((char *)"END INIT");*/
                break;
             case CallK:
-               emitComment((char *)"Call");
+               emitComment((char *)"CALL output");
 
-               emitRM((char *)"ST", 1, ghost, 1, (char *)"Store fp in ghost frame for ", tree->attr.name);
+               emitRM((char *)"ST", 1, toffset, 1, (char *)"Store fp in ghost frame for", tree->attr.name);
                tmp = tree->child[0]; // parameter
                while(tmp != NULL)
                {
-                  emitComment((char *)"Param ", tree->attr.name);
+                  emitComment((char *)"Param ///////", tree->attr.name);
                   if(tmp->subkind.exp == ConstantK)
                   {
                      if(tmp->expType == Integer)
                      {
-                        emitRM((char *)"LDC", 3, tmp->attr.value, 6, (char *)"Load int const");
+                        emitRM((char *)"LDC", 3, tmp->attr.value, 6, (char *)"Load integer constant");
                      }
                   }
-                  emitRM((char *)"ST", 3, ghost - 2, 1, (char *)"Store Param"); // endOfFrame - 2, 
+                  emitRM((char *)"ST", 3, ghost - 2, 1, (char *)"Push parameter"); // endOfFrame - 2, 
                   tmp = tmp->sibling;
                }
                break;
@@ -182,7 +182,7 @@ void treeTargetCode(TreeNode* tree)
                emitComment((char *)"INIT GLOBALS AND STATICS");
                emitComment((char *)"END INIT GLOBALS AND STATICS");
                emitRM((char *)"LDA", 3, 1, 7, (char *)"Return address in ac");
-               emitRM((char *)"JMP", 7, -9, 7, "Jump to main");
+               emitRM((char *)"JMP", 7, -10, 7, "Jump to main");
                emitRM((char *)"HALT", 0, 0, 0, "DONE!");
                emitComment((char *)"END INIT");
                //emitComment((char *)"Function", tree->attr.name);
@@ -503,7 +503,6 @@ void codeGenIO()
 
 void codeGenMain(TreeNode *t)
 {
-   /*
    toffset = -2;
    t->offset = emitSkip(0);
    emitComment((char *)"FUNCTION", t->attr.name);
@@ -521,5 +520,4 @@ void codeGenMain(TreeNode *t)
    emitRM((char *)"LD", 1, 0, 1, (char *)"Adjust fp");
    emitRM((char *)"JMP", 7, 0, 3, (char *)"Return");
    emitComment((char *)"END FUNCTION", t->attr.name);
-   */
 }

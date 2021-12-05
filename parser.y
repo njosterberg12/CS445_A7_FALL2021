@@ -35,6 +35,8 @@ bool displayOffset = false;
 
 extern FILE * code;
 
+FILE *fp;
+
 bool m;
 /*void yyerror(const char *msg)
 {
@@ -612,6 +614,7 @@ constant       :  NUMCONST                                     {  yyerrok;
 extern int yydebug;
 int main(int argc, char *argv[])
 {
+   char * outFile;
    extern int optind;
    int c = 0;
    bool printSyntaxTree = 0;
@@ -730,7 +733,40 @@ int main(int argc, char *argv[])
    }
    if(numErrors == 0)
    {
-      codeGen(syntaxTree, "w", argv[argc - 1]);
+      char* outFile;
+      int i = 0;
+      //if(fp != NULL)
+      //{
+         std::string out = argv[optind];
+         int fileNameLen = strlen(argv[optind]);
+         char *fileName = (char *)malloc(strlen(argv[optind]) +1);
+         strcpy(fileName, argv[optind]);
+         // find the last / and the . to isolate the filename
+         int fileNameStart = out.find_last_of("/");
+         int fileNameEnd = out.find_last_of(".");
+         outFile = (char *)malloc(fileNameEnd-fileNameStart+3);
+         int outFileLen = fileNameEnd-fileNameStart+2;
+         // copy over the filename to a new string
+         for(int i = 0; i < (fileNameEnd-fileNameStart); i++)
+         {
+            outFile[i] = fileName[fileNameStart+1+i];
+         }
+         // append the tm and end of string
+         outFile[outFileLen-2] = 't';
+         outFile[outFileLen-1] = 'm';
+         outFile[outFileLen] = '\0';
+
+         while(i < strlen(outFile))
+         {
+            printf("%c", outFile[i]);
+            i++;
+         }
+
+         printf("\n");
+      //}
+      //printf("HERE \n");
+      //printf("HERE filename: %s ", outFile);
+      codeGen(syntaxTree, outFile);
    }
    //printTree(syntaxTree, 0);
 

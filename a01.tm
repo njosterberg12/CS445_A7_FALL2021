@@ -1,7 +1,7 @@
 * C- compiler version C-F21
 * Built: Dec 3, 2021
 * Author: Nathaniel Osterberg
-* File compiled:  a001.c-
+* File compiled:  a01.tm
 * 
 * ** ** ** ** ** ** ** ** ** ** ** **
   0:    JMP  7,43(7)	Jump to init [backpatch] 
@@ -78,21 +78,25 @@
 * TOFF set: -2
 * Compound Body
 * EXPRESSION
- 40:    LDC  3,666(6)	Load integer const 
+* CALL output
+ 40:     ST  1,-2(1)	Store fp in ghost frame for output
+* Param /////// output
+ 41:    LDC  3,987(6)	Load integer constant 
+ 42:     ST  3,-2(1)	Push parameter 
 * TOFF set: -2
 * END COMPOUND
 * Add standard closing in case there is no return statement
- 41:    LDC  2,0(6)	Set return value to 0 
- 42:     LD  3,-1(1)	Load return address 
- 43:     LD  1,0(1)	Adjust fp 
- 44:    JMP  7,0(3)	Return 
+ 43:    LDC  2,0(6)	Set return value to 0 
+ 44:     LD  3,-1(1)	Load return address 
+ 45:     LD  1,0(1)	Adjust fp 
+ 46:    JMP  7,0(3)	Return 
 * END FUNCTION main
 * INIT
- 45:    LDA  1,0(0)	set first frame at end of globals 
- 46:     ST  1,0(1)	store old fp (point to self) 
+ 47:    LDA  1,0(0)	set first frame at end of globals 
+ 48:     ST  1,0(1)	store old fp (point to self) 
 * INIT GLOBALS AND STATICS
 * END INIT GLOBALS AND STATICS
- 47:    LDA  3,1(7)	Return address in ac 
- 48:    JMP  7,-10(7)	Jump to main 
- 49:   HALT  0,0(0)	DONE! 
+ 49:    LDA  3,1(7)	Return address in ac 
+ 50:    JMP  7,-10(7)	Jump to main 
+ 51:   HALT  0,0(0)	DONE! 
 * END INIT
