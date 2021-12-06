@@ -406,11 +406,15 @@ void analyze(TreeNode *tree)
                   analyze(tree->child[i]);
                   if(tree->child[i] != NULL)
                   {
-                     //TreeNode *param = (TreeNode*)st.lookup(tree->child[i]->attr.name);
-                     //if(param != NULL)
-                     //{
-                        //param->isUsed = true;
-                     //}
+                     if(tree->child[i]->subkind.exp == IdK)
+                     {
+                        TreeNode *param = (TreeNode*)st.lookup(tree->child[i]->attr.name);
+                        if(param != NULL)
+                        {
+                           param->isUsed = true;
+                        }
+                     }
+                     
                   }
                }
                inCall = true;
