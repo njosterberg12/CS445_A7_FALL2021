@@ -1,7 +1,7 @@
 * C- compiler version C-F21
 * Built: Dec 3, 2021
 * Author: Nathaniel Osterberg
-* File compiled:  a01.tm
+* File compiled:  a045.tm
 * 
 * FUNCTION input
   1:     ST  3,-1(1)	Store return address 
@@ -76,20 +76,20 @@
 * TOFF set: -2
 * Compound Body
 * EXPRESSION
-* CALL output
- 40:     ST  1,-2(1)	Store fp in ghost frame for output
+* CALL outputc
+ 40:     ST  1,-2(1)	Store fp in ghost frame for outputc
 * TOFF dec: -3
 * TOFF dec: -4
 * Param
 * EXPRESSION
- 41:    LDC  3,987(6)	Load integer const 
+ 41:    LDC  3,89(6)	Load character const 
  42:     ST  3,-4(1)	Push parameter 
 * Param end
  43:    LDA  1,-2(1)	Ghost frame becomes new active frame 
  44:    LDA  3,1(7)	 Return address in ac 
- 45:    JMP  7,-40(7)	CALL output 
+ 45:    JMP  7,-18(7)	CALL outputc
  46:    LDA  3,0(2)	Save the result in ac 
-* Call end output
+* Call end outputc
 * TOFF set: -2
 * END COMPOUND
 * Add standard closing in case there is no return statement

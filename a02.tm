@@ -1,7 +1,7 @@
 * C- compiler version C-F21
 * Built: Dec 3, 2021
 * Author: Nathaniel Osterberg
-* File compiled:  a01.tm
+* File compiled:  a02.tm
 * 
 * FUNCTION input
   1:     ST  3,-1(1)	Store return address 
@@ -75,36 +75,46 @@
 * COMPOUND
 * TOFF set: -2
 * Compound Body
+* TOFF dec: -3
 * EXPRESSION
 * CALL output
- 40:     ST  1,-2(1)	Store fp in ghost frame for output
-* TOFF dec: -3
+ 40:     ST  1,-3(1)	Store fp in ghost frame for output
 * TOFF dec: -4
+* TOFF dec: -5
 * Param
 * EXPRESSION
- 41:    LDC  3,987(6)	Load integer const 
- 42:     ST  3,-4(1)	Push parameter 
+ 41:    LDC  3,982(6)	Load integer const 
+ 42:     ST  3,-5(1)	Push parameter 
 * Param end
- 43:    LDA  1,-2(1)	Ghost frame becomes new active frame 
+ 43:    LDA  1,-3(1)	Ghost frame becomes new active frame 
  44:    LDA  3,1(7)	 Return address in ac 
- 45:    JMP  7,-40(7)	CALL output 
+ 45:    JMP  7,-40(7)	CALL output
  46:    LDA  3,0(2)	Save the result in ac 
 * Call end output
+* EXPRESSION
+* CALL outnl
+ 47:     ST  1,-3(1)	Store fp in ghost frame for outnl
+* Param end
+ 48:    LDA  1,-3(1)	Ghost frame becomes new active frame 
+ 49:    LDA  3,1(7)	 Return address in ac 
+ 50:    JMP  7,-17(7)	CALL outnl
+ 51:    LDA  3,0(2)	Save the result in ac 
+* Call end outnl
 * TOFF set: -2
 * END COMPOUND
 * Add standard closing in case there is no return statement
- 47:    LDC  2,0(6)	Set return value to 0 
- 48:     LD  3,-1(1)	Load return address 
- 49:     LD  1,0(1)	Adjust fp 
- 50:    JMP  7,0(3)	Return 
+ 52:    LDC  2,0(6)	Set return value to 0 
+ 53:     LD  3,-1(1)	Load return address 
+ 54:     LD  1,0(1)	Adjust fp 
+ 55:    JMP  7,0(3)	Return 
 * END FUNCTION main
-  0:    JMP  7,50(7)	Jump to init [backpatch] 
+  0:    JMP  7,55(7)	Jump to init [backpatch] 
 * INIT
- 51:    LDA  1,0(0)	Set first frame at end of globals 
- 52:     ST  1,0(1)	Store old fp (point to self) 
+ 56:    LDA  1,0(0)	Set first frame at end of globals 
+ 57:     ST  1,0(1)	Store old fp (point to self) 
 * INIT GLOBALS AND STATICS
 * END INIT GLOBALS AND STATICS
- 53:    LDA  3,1(7)	Return address in ac 
- 54:    JMP  7,-16(7)	Jump to main 
- 55:   HALT  0,0,0	Done! 
+ 58:    LDA  3,1(7)	Return address in ac 
+ 59:    JMP  7,-21(7)	Jump to main 
+ 60:   HALT  0,0,0	Done! 
 * END INIT

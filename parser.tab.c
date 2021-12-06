@@ -2925,7 +2925,7 @@ yyreduce:
                                                                   (yyval.tree) = newExpNode(ConstantK, (yyvsp[0].tokenData));
                                                                   (yyval.tree)->TD = (yyvsp[0].tokenData);
                                                                   (yyval.tree)->attr.name = (yyvsp[0].tokenData)->tokenstr;
-                                                                  //$$->attr.cvalue = $1->cvalue;
+                                                                  (yyval.tree)->cvalue = (yyvsp[0].tokenData)->cvalue;
                                                                   (yyval.tree)->expType = Char;
                                                                   (yyval.tree)->isInit = true;
                                                                   (yyval.tree)->isCharacter = true;
@@ -3262,6 +3262,10 @@ int main(int argc, char *argv[])
       }
    }
 
+   selectOption = 1;
+   m = true;
+   //PAST = true;
+   //displayOffset = true;
 
    if(argc > optind)
    {
@@ -3287,11 +3291,16 @@ int main(int argc, char *argv[])
    initErrorProcessing();
    yyparse();
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// NOTE: for some reason, mem location is tied to printSyntax tree.
+//       for A7, main in parser.y should look like this.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
    if(printSyntaxTree && selectOption == 0 && numErrors == 0)
    {
       printTree(syntaxTree, 0);
    }
-   else if(printSyntaxTree && selectOption == 1 && numErrors == 0)
+   else if(selectOption == 1 && numErrors == 0)
    {
       prototype();
       analyze(syntaxTree);
@@ -3315,45 +3324,27 @@ int main(int argc, char *argv[])
          printf("ERROR(LINKER): A function named 'main' with no parameters must be defined.\n");
          numErrors++;
       }
-      if(numErrors < 1)
-         printTree(syntaxTree, 0);
+      //if(numErrors < 1)
+         //printTree(syntaxTree, 0);
    }
    if(numErrors == 0)
    {
-      char* outFile;
-      int i = 0;
-      //if(fp != NULL)
-      //{
+      char *fileName;
+      // Extract the filename from argv if given
+      //if (fp != NULL){
+         //printf("HERE\n");
          std::string out = argv[optind];
-         int fileNameLen = strlen(argv[optind]);
-         char *fileName = (char *)malloc(strlen(argv[optind]) +1);
+         int fileNameLen =strlen(argv[optind]);
+         fileName = (char*)malloc(strlen(argv[optind]) +1);
          strcpy(fileName, argv[optind]);
-         // find the last / and the . to isolate the filename
-         int fileNameStart = out.find_last_of("/");
-         int fileNameEnd = out.find_last_of(".");
-         outFile = (char *)malloc(fileNameEnd-fileNameStart+3);
-         int outFileLen = fileNameEnd-fileNameStart+2;
-         // copy over the filename to a new string
-         for(int i = 0; i < (fileNameEnd-fileNameStart); i++)
-         {
-            outFile[i] = fileName[fileNameStart+1+i];
-         }
-         // append the tm and end of string
-         outFile[outFileLen-2] = 't';
-         outFile[outFileLen-1] = 'm';
-         outFile[outFileLen] = '\0';
-
-         while(i < strlen(outFile))
-         {
-            printf("%c", outFile[i]);
-            i++;
-         }
-
-         printf("\n");
+	      fileName[fileNameLen-2]='t';
+         fileName[fileNameLen-1]='m';
+         //printf("%s\n", fileName);
       //}
-      //printf("HERE \n");
-      //printf("HERE filename: %s ", outFile);
-      codeGen(syntaxTree, outFile);
+      //displayOffset = true;
+      //m = true;
+      prototype();
+      codeGen(syntaxTree, fileName);
    }
    //printTree(syntaxTree, 0);
 

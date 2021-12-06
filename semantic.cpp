@@ -20,6 +20,8 @@ int loopDepth = 0;
 char *withinScope;
 extern bool m;
 int funcSize = -2;
+extern void countSymbols(std::string sym, void *ptr);
+
 
 void analyze(TreeNode *tree)
 {
@@ -76,7 +78,7 @@ void analyze(TreeNode *tree)
                   printf("ERROR(%d): Cannot use array as test condition in if statement.\n", tree->lineno);
                   numErrors++;
                }
-               st.applyToAll(wasUsed);
+               st.applyToAll(countSymbols);
                NEW_SCOPE = false;
                st.leave();
                tree->memSize = Loffset;
@@ -103,7 +105,7 @@ void analyze(TreeNode *tree)
                   printf("ERROR(%d): Cannot use array as test condition in while statement.\n", tree->lineno);
                   numErrors++;
                }
-               st.applyToAll(wasUsed);
+               st.applyToAll(countSymbols);
                NEW_SCOPE = false;
                loopDepth--;
                st.leave();
@@ -189,7 +191,7 @@ void analyze(TreeNode *tree)
 
                if(!tempScope)
                {
-                  st.applyToAll(wasUsed);
+                  st.applyToAll(countSymbols);
                   
                   Loffset = tempOffset;
                   st.leave();
@@ -211,7 +213,10 @@ void analyze(TreeNode *tree)
                {
                   //analyze(tree->child[0]);
                   tmp = st.lookupNode(tree->child[0]->attr.name);
-                  //printf("HERE\n");
+                  if(tmp != NULL)
+                  {
+                     tmp->isUsed = true;
+                  }
                   if(tmp != NULL && tmp->isArray)
                   {
                      printf("ERROR(%d): Cannot return an array.\n", tree->lineno);
@@ -285,10 +290,12 @@ void analyze(TreeNode *tree)
                if(tree->child[1] != NULL)
                {
                   checkBinaryOps(tree);
+                  tree->child[1]->isUsed = true;
                }
                else
                {
                   checkUnaryOps(tree);
+                  tree->child[0]->isUsed = true;
                }
                break;
             case ConstantK:
@@ -382,7 +389,11 @@ void analyze(TreeNode *tree)
                if(tree->child[0]->subkind.exp == OpK && tree->child[0]->child[0]->subkind.exp == IdK) {
                   tmp = st.lookupNode(tree->child[0]->child[0]->attr.name);            
                }
-               if(tmp != NULL) tmp->isInit = true;
+               if(tmp != NULL)
+               {
+                  tmp->isInit = true;
+                  tmp->isUsed = true;
+               }
                tree->child[0]->isInit = true;
                tree->expType = tree->child[0]->expType;
                break;
@@ -393,6 +404,14 @@ void analyze(TreeNode *tree)
                for(int i = 0; i <= 2; i++)
                {
                   analyze(tree->child[i]);
+                  if(tree->child[i] != NULL)
+                  {
+                     //TreeNode *param = (TreeNode*)st.lookup(tree->child[i]->attr.name);
+                     //if(param != NULL)
+                     //{
+                        //param->isUsed = true;
+                     //}
+                  }
                }
                inCall = true;
 
@@ -403,6 +422,7 @@ void analyze(TreeNode *tree)
                }
                if(tmp != NULL)
                {
+                  tmp->isUsed = true;
                   if(!isIO)
                   {
                      tree->expType = tmp->expType;
@@ -596,7 +616,7 @@ void analyze(TreeNode *tree)
                   }
                   
                }
-               //st.applyToAll(wasUsed);           ////////////////////////////////////////////// SOURCE OF EXTRA WARNINGS
+               st.applyToAll(countSymbols);           ////////////////////////////////////////////// SOURCE OF EXTRA WARNINGS
                if(!returnFlag && tree->expType != Void)
                {
                   printf("WARNING(%d): Expecting to return type %s but function '%s' has no return statement.\n", tree->lineno, convertExpTypeEnum(tree->expType), tree->attr.name);
@@ -775,17 +795,7 @@ void checkInit(TreeNode *tree, int side)
 
 void wasUsed(std::string sym, void *ptr)
 {
-   TreeNode *tmp;
-   tmp = st.lookupNode(sym);
-   //printf("Error in was Used\n");
-   if(tmp != NULL)
-   {
-      if(!tmp->isUsed)
-      {
-         //printf("WARNING(%d): The variable '%s' seems not to be used.\n", tmp->lineno, sym.c_str()); ///////////////////// MAJOR PROBLEMS
-         //numWarnings++;
-      }
-   }
+
 }
 
 void checkArrays(TreeNode *tree)

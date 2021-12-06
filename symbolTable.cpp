@@ -1,5 +1,6 @@
 #include "symbolTable.h"
 
+extern int numWarnings;
 // // // // // // // // // // // // // // // // // // // // 
 //
 // Introduction
@@ -279,6 +280,15 @@ void * SymbolTable::lookupSingle(std::string sym)
     
     return data;
 }
+
+void countSymbols(std::string sym, void *ptr) {
+    TreeNode *node = (TreeNode *)ptr;
+    if (!node->isUsed && !node->usedWarningReported ){
+       printf("WARNING(%d): The variable '%s' seems not to be used.\n", node->lineno, node->attr.name);
+       numWarnings++;
+       node->usedWarningReported = true;
+    }
+ }
 
 
 // // // // // // // // // // // // // // // // // // // // 

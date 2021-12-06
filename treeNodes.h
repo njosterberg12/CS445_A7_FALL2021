@@ -7,6 +7,7 @@
 #define MAXCHILDREN 3
 
 extern bool PAST;
+extern bool m;
 
 // Kinds of Operators
 //    these are the token numbers for the operators same as in flex
@@ -48,7 +49,7 @@ typedef struct treeNode
    {
       OpKind op;                          // type of token (same as in bison)
       int value;                          // used when an integer constant or boolean
-      unsigned char cvalue;               // used when a character
+      //unsigned char cvalue;               // used when a character
       char *string;                       // used when a string constant
       char *name;                         // used when IdK
    } attr;
@@ -66,6 +67,8 @@ typedef struct treeNode
    bool isIOControl;                      // used in IO.c
    int numParams;                         // used in errors.c
    bool isConstant;
+   unsigned char cvalue;
+   bool usedWarningReported;
 
    // even more semantic stuff will go here in later assignments.
    int memSize;

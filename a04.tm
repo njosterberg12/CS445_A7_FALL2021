@@ -1,10 +1,8 @@
 * C- compiler version C-F21
 * Built: Dec 3, 2021
 * Author: Nathaniel Osterberg
-* File compiled:  a00.c-
+* File compiled:  a04.tm
 * 
-* ** ** ** ** ** ** ** ** ** ** ** **
-  0:    JMP  7,43(7)	Jump to init [backpatch] 
 * FUNCTION input
   1:     ST  3,-1(1)	Store return address 
   2:     IN  2,2,2	Grab int input 
@@ -36,7 +34,7 @@
 * FUNCTION outputb
  17:     ST  3,-1(1)	Store return address 
  18:     LD  3,-2(1)	Load return address 
- 19:    OUT  3,3,3	Output integer 
+ 19:   OUTB  3,3,3	Output integer 
  20:     LD  3,-1(1)	Load return address 
  21:     LD  1,0(1)	Adjust fp 
  22:    JMP  7,0(3)	Return 
@@ -45,7 +43,7 @@
 * ** ** ** ** ** ** ** ** ** ** ** **
 * FUNCTION inputc
  23:     ST  3,-1(1)	Store return address 
- 24:    INB  2,2,2	Grab bool input 
+ 24:    INC  2,2,2	Grab bool input 
  25:     LD  3,-1(1)	Load return address 
  26:     LD  1,0(1)	Adjust fp 
  27:    JMP  7,0(3)	Return 
@@ -55,7 +53,7 @@
 * FUNCTION outputc
  28:     ST  3,-1(1)	Store return address 
  29:     LD  3,-2(1)	Load return address 
- 30:    OUT  3,3,3	Output integer 
+ 30:   OUTC  3,3,3	Output integer 
  31:     LD  3,-1(1)	Load return address 
  32:     LD  1,0(1)	Adjust fp 
  33:    JMP  7,0(3)	Return 
@@ -77,20 +75,36 @@
 * COMPOUND
 * TOFF set: -2
 * Compound Body
+* EXPRESSION
+* CALL outputb
+ 40:     ST  1,-2(1)	Store fp in ghost frame for outputb
+* TOFF dec: -3
+* TOFF dec: -4
+* Param
+* EXPRESSION
+ 41:    LDC  3,0(6)	Load boolean const 
+ 42:     ST  3,-4(1)	Push parameter 
+* Param end
+ 43:    LDA  1,-2(1)	Ghost frame becomes new active frame 
+ 44:    LDA  3,1(7)	 Return address in ac 
+ 45:    JMP  7,-29(7)	CALL outputb
+ 46:    LDA  3,0(2)	Save the result in ac 
+* Call end outputb
 * TOFF set: -2
 * END COMPOUND
 * Add standard closing in case there is no return statement
- 40:    LDC  2,0(6)	Set return value to 0 
- 41:     LD  3,-1(1)	Load return address 
- 42:     LD  1,0(1)	Adjust fp 
- 43:    JMP  7,0(3)	Return 
+ 47:    LDC  2,0(6)	Set return value to 0 
+ 48:     LD  3,-1(1)	Load return address 
+ 49:     LD  1,0(1)	Adjust fp 
+ 50:    JMP  7,0(3)	Return 
 * END FUNCTION main
+  0:    JMP  7,50(7)	Jump to init [backpatch] 
 * INIT
- 44:    LDA  1,0(0)	set first frame at end of globals 
- 45:     ST  1,0(1)	store old fp (point to self) 
+ 51:    LDA  1,0(0)	Set first frame at end of globals 
+ 52:     ST  1,0(1)	Store old fp (point to self) 
 * INIT GLOBALS AND STATICS
 * END INIT GLOBALS AND STATICS
- 46:    LDA  3,1(7)	Return address in ac 
- 47:    JMP  7,-10(7)	Jump to main 
- 48:   HALT  0,0(0)	DONE! 
+ 53:    LDA  3,1(7)	Return address in ac 
+ 54:    JMP  7,-16(7)	Jump to main 
+ 55:   HALT  0,0,0	Done! 
 * END INIT
