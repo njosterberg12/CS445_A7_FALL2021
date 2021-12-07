@@ -12,39 +12,14 @@ int paramCount = 0;
 bool store;
 bool arrayOp = false;
 
-void codeGenGlobalsAndStatics(TreeNode *t){
-   
-   if (t == NULL){
-      return;
-   }
-   
-   if (t->nodekind == DeclK && t->subkind.decl == VarK){
-      if (t->memType==Global){
-         //TreeNode* found = (TreeNode*)symbolTable.lookup((char *)t->attr.name);
-         if(t->isArray){
-         
-            emitRM((char *)"LDC", 3, t->memSize-1, 6,(char *)"load saved size of array",(char *)t->attr.name);
-            emitRM((char *)"ST", 3, t->offset+1, 0,(char *)"save size of array",(char *)t->attr.name);
-         }
-         else{
-            treeTargetCode(t->child[0]);
-            emitRM((char *)"ST", 3, t->offset, 0,(char *)"1Store variable",(char *)t->attr.name);
-            //tOffset -= t->memSize;
-         }
-         //numGlobals++;
-      }
-   }
-   
-   for(int i = 0; i < 3; i++) {
-      codeGenGlobalsAndStatics(t->child[i]);
-   }
-   codeGenGlobalsAndStatics(t->sibling);
-}
 void codeGen(TreeNode* tree, char* passedFile)
 {
    int i = 0;
    int globalEnd = 0;
    code = fopen(passedFile, "w");
+
+   TreeNode * globTree = tree;
+
 
    // header comment
    emitComment((char *)"C- compiler version C-F21");
@@ -73,7 +48,7 @@ void codeGen(TreeNode* tree, char* passedFile)
    emitRM((char *)"LDA", 1, globalEnd, 0, (char *)"Set first frame at end of globals");
    emitRM((char *)"ST", 1, 0, 1, (char *)"Store old fp (point to self)");
    emitComment((char *)"INIT GLOBALS AND STATICS");
-   codeGenGlobalsAndStatics(tree);
+   initGlobalsAndStatics(tree);
    temp = tree;
    //initialize globals function
    emitComment((char *)"END INIT GLOBALS AND STATICS");
@@ -351,13 +326,7 @@ void treeTargetCode(TreeNode* tree)
                   tmp = tmp->sibling;
                }
                int ghost = toffset;
-               //printf("%s\n", tree->child[1]->attr.name);
-               /*if (tree->child[1]!=NULL){
-                  //treeTargetCode(tree->child[1]);
-               }*/
-               for (int i = 0; i<3; i++){
-                  treeTargetCode(tree->child[i]);
-               }
+               treeTargetCode(tree->child[1]);
                emitComment((char *)"Add standard closing in case there is no return statement");
                emitRM((char *)"LDC", 2, 0, 6, (char *)"Set return value to 0");
                emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
@@ -435,13 +404,10 @@ void unaryOpCode(TreeNode* tree)
 
 void binaryOpCode(TreeNode* tree)
 {
-   // if it breaks b files, most likely add additional checks here. 
-   if (tree->child[0]->subkind.exp!= ConstantK && tree->child[1]->subkind.exp!=ConstantK)
+   // fix decrement for arrays
+   if(!strcmp(tree->child[0]->attr.name, "[") && !strcmp(tree->child[1]->attr.name, "["))
    {
-      if(!strcmp(tree->child[0]->attr.name, "[") && !strcmp(tree->child[1]->attr.name, "["))
-      {
-         arrayOp = true;
-      }
+      arrayOp = true;
    }
 
    emitComment((char *)"OpK");
@@ -512,18 +478,8 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "+"))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"1Save left side");
-      if(arrayOp == true)
-      {
-         toffset--;
-         emitComment((char *)"TOFF dec:", toffset);
-      }
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
       treeTargetCode(tree->child[1]);
-      if(arrayOp == true)
-      {
-         toffset++;
-         emitComment((char *)"TOFF inc:", toffset);
-      }
       emitRM((char *)"LD", 4, toffset, 1, (char *)"Pop left into ac1");
       emitRO((char *)"ADD", 3, 4, 3, (char *)"Op +");
    }
@@ -569,16 +525,16 @@ void binaryOpCode(TreeNode* tree)
       int index = emitSkip(0);
       if(tree->child[0]->isArray == true)
       {
-         emitRM((char *)"LDA", 3, tree->child[0]->offset, isGlobal(tree->child[0]), (char *)"Load address of base of array");
+         emitRM((char *)"LDA", 3, tree->child[0]->offset, isGlobal(tree->child[0]), (char *)"Load address of base of array", tree->child[0]->attr.name);
       }
       
       emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
-      /*if(arrayOp == true)
+      if(arrayOp == true)
       {
          toffset--;
          emitComment((char *)"TOFF dec:", toffset);
-      }*/
-      toffset--;
+      }
+      //toffset--;
       emitComment((char *)"TOFF dec:", toffset);
       treeTargetCode(tree->child[1]);
       toffset++;
@@ -586,12 +542,7 @@ void binaryOpCode(TreeNode* tree)
       emitRM((char *)"LD", 4, toffset, 1, (char *)"Pop left into ac1");
       emitRO((char *)"SUB", 3, 4, 3, (char *)"Compute location from index");
       emitRM((char *)"LD", 3, 0, 3, (char *)"Load array element");
-      /*if(arrayOp == true)
-      {
-         toffset++;
-         emitComment((char *)"TOFF inc:", toffset);
-         arrayOp = false;
-      }*/
+
       //treeTargetCode(tree->child[1]);
       //emitRM((char *)"ST", 3, -2, 1, (char *)"Push index");
 
@@ -605,7 +556,6 @@ void binaryOpCode(TreeNode* tree)
 
 void unaryAsgnCode(TreeNode* tree)
 {
-   int fp;
    if(!strcmp(tree->attr.name, "-"))
    {
 
@@ -642,7 +592,6 @@ void unaryAsgnCode(TreeNode* tree)
 
 void binaryAsgnCode(TreeNode* tree)
 {
-   int fp;
    if(!strcmp(tree->attr.name, "+="))
    {
       /*fp = frame(tree);
@@ -720,15 +669,15 @@ void binaryAsgnCode(TreeNode* tree)
                }
                else
                {
-                  //printf("tree->child[0]->subkind.exp %i, name %s\n", tree->child[0]->subkind.exp, tree->child[0]->attr.name);
-                  /*if(tree->child[1]->subkind.exp == OpK)
+                  printf("tree->child[0]->subkind.exp %i, name %s\n", tree->child[0]->subkind.exp, tree->child[0]->attr.name);
+                  if(tree->child[1]->subkind.exp == OpK)
                   {
                      arrayOp = true;
                   }
                   else
                   {
                      arrayOp = false;
-                  }*/
+                  }
                   int index = emitSkip(0);
                   if(tree->child[0]->child[1] != NULL)
                      treeTargetCode(tree->child[0]->child[1]);
@@ -892,7 +841,6 @@ void codeGenMain(TreeNode *t)
       temp = temp->sibling;
    }
    //treeTargetCode(t->child[1]);
-   printf("test\n");
    emitComment((char *)"Add standard closing in case there is no return statement");
    emitRM((char *)"LDC", 2, 0, 6, (char *)"Set return value to 0");
    emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
@@ -920,4 +868,31 @@ int isGlobal(TreeNode *tree)
    //}
 }
 
-
+void initGlobalsAndStatics(TreeNode * tree)
+{
+   if(tree == NULL)
+   {
+      return;
+   }
+   if(tree->nodekind == DeclK && tree->subkind.decl == VarK)
+   {
+      if(tree->memType == Global)
+      {
+         if(tree->isArray)
+         {
+            emitRM((char *)"LDC", 3, tree->memSize - 1, 6, (char *)"load size of array", tree->attr.name);
+            emitRM((char *)"ST", 3, tree->offset + 1, 0, (char *)"save size of array", tree->attr.name);
+         }
+         else
+         {
+            treeTargetCode(tree->child[0]);
+            emitRM((char *)"ST", 3, tree->offset, 0, (char *)"save size of array", tree->attr.name);
+         }
+      }
+   }
+   for(int i = 0; i < 3; i++)
+   {
+      initGlobalsAndStatics(tree->child[i]);
+   }
+   initGlobalsAndStatics(tree->sibling);
+}

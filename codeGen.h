@@ -16,6 +16,8 @@ void unaryOpCode(TreeNode* tree);
 void binaryOpCode(TreeNode* tree);
 void unaryAsgnCode(TreeNode* tree);
 void binaryAsgnCode(TreeNode* tree);
-int frame(treeNode* tree);
+void pushLeft(TreeNode* tree);
+int isGlobal(TreeNode* tree);
+void initGlobalsAndStatics(TreeNode* tree);
 
 #endif

@@ -12,34 +12,6 @@ int paramCount = 0;
 bool store;
 bool arrayOp = false;
 
-void codeGenGlobalsAndStatics(TreeNode *t){
-   
-   if (t == NULL){
-      return;
-   }
-   
-   if (t->nodekind == DeclK && t->subkind.decl == VarK){
-      if (t->memType==Global){
-         //TreeNode* found = (TreeNode*)symbolTable.lookup((char *)t->attr.name);
-         if(t->isArray){
-         
-            emitRM((char *)"LDC", 3, t->memSize-1, 6,(char *)"load saved size of array",(char *)t->attr.name);
-            emitRM((char *)"ST", 3, t->offset+1, 0,(char *)"save size of array",(char *)t->attr.name);
-         }
-         else{
-            treeTargetCode(t->child[0]);
-            emitRM((char *)"ST", 3, t->offset, 0,(char *)"1Store variable",(char *)t->attr.name);
-            //tOffset -= t->memSize;
-         }
-         //numGlobals++;
-      }
-   }
-   
-   for(int i = 0; i < 3; i++) {
-      codeGenGlobalsAndStatics(t->child[i]);
-   }
-   codeGenGlobalsAndStatics(t->sibling);
-}
 void codeGen(TreeNode* tree, char* passedFile)
 {
    int i = 0;
@@ -73,7 +45,7 @@ void codeGen(TreeNode* tree, char* passedFile)
    emitRM((char *)"LDA", 1, globalEnd, 0, (char *)"Set first frame at end of globals");
    emitRM((char *)"ST", 1, 0, 1, (char *)"Store old fp (point to self)");
    emitComment((char *)"INIT GLOBALS AND STATICS");
-   codeGenGlobalsAndStatics(tree);
+
    temp = tree;
    //initialize globals function
    emitComment((char *)"END INIT GLOBALS AND STATICS");
@@ -435,13 +407,10 @@ void unaryOpCode(TreeNode* tree)
 
 void binaryOpCode(TreeNode* tree)
 {
-   // if it breaks b files, most likely add additional checks here. 
-   if (tree->child[0]->subkind.exp!= ConstantK && tree->child[1]->subkind.exp!=ConstantK)
+   // fix decrement for arrays
+   if(!strcmp(tree->child[0]->attr.name, "[") && !strcmp(tree->child[1]->attr.name, "["))
    {
-      if(!strcmp(tree->child[0]->attr.name, "[") && !strcmp(tree->child[1]->attr.name, "["))
-      {
-         arrayOp = true;
-      }
+      arrayOp = true;
    }
 
    emitComment((char *)"OpK");
@@ -584,7 +553,7 @@ void binaryOpCode(TreeNode* tree)
       toffset++;
       emitComment((char *)"TOFF inc:", toffset);
       emitRM((char *)"LD", 4, toffset, 1, (char *)"Pop left into ac1");
-      emitRO((char *)"SUB", 3, 4, 3, (char *)"Compute location from index");
+      emitRM((char *)"SUB", 3, 4, 3, (char *)"Compute location from index");
       emitRM((char *)"LD", 3, 0, 3, (char *)"Load array element");
       /*if(arrayOp == true)
       {
@@ -702,7 +671,7 @@ void binaryAsgnCode(TreeNode* tree)
                      emitComment((char *)"TOFF inc:", toffset);
                      emitRM((char *)"LD", 4, toffset, 1, (char *)"Pop index");
                      emitRM((char *)"LDA", 5, tree->child[0]->child[0]->offset, isGlobal(tree->child[0]->child[0]), (char *)"Load address of base of array", tree->child[0]->child[0]->attr.name); // pop index ---> toffset
-                     emitRO((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
+                     emitRM((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
                      emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable", tree->child[0]->child[0]->attr.name);
                   }
                   else
@@ -738,7 +707,7 @@ void binaryAsgnCode(TreeNode* tree)
                   treeTargetCode(tree->child[1]);
                   emitRM((char *)"LD", 4, toffset, 1, (char *)"Pop index");
                   emitRM((char *)"LDA", 5, tree->child[0]->child[0]->offset, isGlobal(tree->child[0]->child[0]), (char *)"Load address of base of array", tree->child[0]->child[0]->attr.name); // pop index ---> toffset
-                  emitRO((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
+                  emitRM((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
                   emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable", tree->child[0]->child[0]->attr.name);
                   // SUB 5 5 4
                   // ST 3 0 5
@@ -919,5 +888,3 @@ int isGlobal(TreeNode *tree)
          return 1;
    //}
 }
-
-
