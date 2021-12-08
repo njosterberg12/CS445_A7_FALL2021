@@ -1,7 +1,7 @@
 * C- compiler version C-F21
 * Built: Dec 3, 2021
 * Author: Nathaniel Osterberg
-* File compiled:  c05.tm
+* File compiled:  c08.tm
 * 
 * FUNCTION input
   1:     ST  3,-1(1)	Store return address 
@@ -82,7 +82,7 @@
 * EXPRESSION
  41:     ST  3,-2(1)	Push index 
 * EXPRESSION
- 42:    LDC  3,73(6)	Load integer const 
+ 42:    LDC  3,1(6)	Load boolean const 
  43:     LD  4,-2(1)	Pop index 
  44:    LDA  5,-1(0)	Load address of base of array x
  45:    SUB  5,5,4	Compute offset of value 
@@ -94,14 +94,14 @@
 * EXPRESSION
  48:     ST  3,-2(1)	Push index 
 * EXPRESSION
- 49:    LDC  3,211(6)	Load integer const 
+ 49:    LDC  3,0(6)	Load boolean const 
  50:     LD  4,-2(1)	Pop index 
  51:    LDA  5,-5(0)	Load address of base of array y
  52:    SUB  5,5,4	Compute offset of value 
  53:     ST  3,0(5)	Store variable y
 * EXPRESSION
-* CALL output
- 54:     ST  1,-2(1)	Store fp in ghost frame for output
+* CALL outputb
+ 54:     ST  1,-2(1)	Store fp in ghost frame for outputb
 * TOFF dec: -3
 * TOFF dec: -4
 * Param
@@ -131,16 +131,16 @@
  65:     LD  4,-5(1)	Pop left into ac1 
  66:    SUB  3,4,3	Compute location from index 
  67:     LD  3,0(3)	Load array element 
-* TOFF inc: -4
- 68:     LD  4,-4(1)	Pop left into ac1 
- 69:    ADD  3,4,3	Op + 
- 70:     ST  3,-4(1)	Push parameter 
+* TOFF inc: -5
+ 68:     LD  4,-5(1)	Load left into ac1 
+ 69:     OR  3,4,3	Op or 
+ 70:     ST  3,-5(1)	Push parameter 
 * Param end
  71:    LDA  1,-2(1)	Ghost frame becomes new active frame 
  72:    LDA  3,1(7)	 Return address in ac 
- 73:    JMP  7,-68(7)	CALL output
+ 73:    JMP  7,-57(7)	CALL outputb
  74:    LDA  3,0(2)	Save the result in ac 
-* Call end output
+* Call end outputb
 * EXPRESSION
 * CALL outnl
  75:     ST  1,-2(1)	Store fp in ghost frame for outnl

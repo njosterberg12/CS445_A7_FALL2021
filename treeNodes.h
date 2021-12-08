@@ -74,6 +74,8 @@ typedef struct treeNode
    int memSize;
    VarKind memType;
    int offset;
+   bool elseStmt;
+   int temp1, temp2;
    
 } TreeNode;
 
