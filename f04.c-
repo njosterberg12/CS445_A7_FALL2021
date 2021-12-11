@@ -1,0 +1,13 @@
+// C-F21
+int cat()
+{
+    return 42;
+}
+
+main()
+{
+    int x;
+
+    x := cat();
+    output(x);
+}

@@ -128,44 +128,6 @@ void treeTargetCode(TreeNode* tree)
                   backPatchAJumpToHere((char *)("JMP"),7,elseLocation, (char *)("Jump around the ELSE [backpatch]"));
                }
                emitComment((char *)("END IF"));
-               /*if(tree->child[2] != NULL)
-               {
-                  tree->elseStmt = true;
-               }
-               else
-               {
-                  tree->elseStmt = false;
-               }
-               // first child
-               treeTargetCode(tree->child[0]);
-               tree->temp1 = emitSkip(1);
-               // second child
-               treeTargetCode(tree->child[1]);
-               // deter offset of distance between if and else or else if
-               tree->temp2 = emitSkip(0) - tree->temp1;
-               // return
-               emitNewLoc(tree->temp1);
-
-               if(tree->elseStmt == false)
-               {
-                  emitRO((char *)"JZR", 3, tree->temp2 - 1, 7, (char *)"Jump around the THEN if false [backpatch]");
-                  emitSkip(tree->temp2 - 1);
-               }
-               else // if there is an else ...
-               {
-                  emitRO((char *)"JZR", 3, tree->temp2, 7, (char *)"Jump around the THEN if false [backpatch]");
-                  emitSkip(tree->temp2);
-                  // save state
-                  tree->temp1 = emitSkip(0);
-                  // else statement
-                  treeTargetCode(tree->child[2]);
-                  tree->temp2 = emitSkip(0);
-                  // backup
-                  emitNewLoc(tree->temp1 - 1);
-                  // jump to else location
-                  emitRO((char *)"JZR", 3, tree->temp2 - tree->temp1, 7, (char *)"Jump around the THEN if false [backpatch]");
-                  emitNewLoc(tree->temp2);
-               }*/
                break;}
             case WhileK:{
                int backpatch = emitSkip(0);
@@ -191,36 +153,6 @@ void treeTargetCode(TreeNode* tree)
                breakloc = backBreak;
                emitNewLoc(jumpLocation);
                emitComment((char *)("END WHILE"));
-               /*whileLoops[loopBegin] = emitSkip(0);
-               loopBegin++;
-               tree->offset = emitSkip(0);
-
-               if(tree->child[1] != NULL)
-               {
-                  treeTargetCode(tree->child[0]);
-               }
-               emitRM((char *)"JNZ", 3, 1, 7, (char *)"Jump to while part");
-               // skip for backup
-               tree->temp1 = emitSkip(1);
-
-               if(tree->child[1] != NULL)
-               {
-                  treeTargetCode(tree->child[1]);
-               }
-               else
-               {
-                  treeTargetCode(tree->child[0]);
-               }
-               emitRM((char *)"JMP", 7, tree->offset - emitSkip(0) - 1, 7, (char *)"go to beginning of loop");
-               // current state
-               tree->temp2 = emitSkip(0);
-               emitNewLoc(tree->temp1);
-
-               emitRM((char *)"JMP", 7, tree->temp2 - tree->temp1 - 1, 7, (char *)"Jump past loop [backpatch]");
-               // return
-               emitSkip(tree->temp2 - emitSkip(0));
-
-               loopBegin--;*/
                break;}
             case ForK:
                //emitComment((char *)"For");
@@ -299,6 +231,14 @@ void treeTargetCode(TreeNode* tree)
                }*/
                if(tree->child[1] != NULL)
                {
+                  /*if(tree->child[1]->isArray)
+                  {
+
+                  }
+                  else
+                  {
+                     toffset--;
+                  }*/
                   binaryOpCode(tree);
                }
                else
@@ -450,7 +390,20 @@ void treeTargetCode(TreeNode* tree)
                emitRM((char *)"ST", 1, toffset, 1, (char *)"Store fp in ghost frame for", tree->attr.name);
                if(paramCount == 0)
                {
-
+                  //toffset--;
+                  //emitComment((char *)"TOFF dec:", toffset);
+                  //toffset--;
+                  //emitComment((char *)"TOFF dec:", toffset);
+                  tmp = tree->child[0]; // parameter
+                  emitComment((char *)"Param end");
+                  //printf("tree->attr.name %s LINE %i\n", tree->attr.name, tree->lineno);
+                  emitRM((char *)"LDA", 1, ghost, 1, (char *)"Ghost frame becomes new active frame");
+                  emitRM((char *)"LDA", 3, 1, 7, (char *)"  Return address in ac");
+                  int intCurrent = emitSkip(0);
+                  emitRM((char *)"JMP", 7, function->offset - intCurrent - 1, 7, (char *)"CALL", tree->attr.name); ///////////////////////////////////////
+                  emitRM((char *)"LDA", 3, 0, 2, (char *)"  Save the result in ac");
+                  toffset = ghost;
+                  emitComment((char *)"Call end", tree->attr.name);
                }
                else if(paramCount == 1)
                {
@@ -458,31 +411,43 @@ void treeTargetCode(TreeNode* tree)
                   emitComment((char *)"TOFF dec:", toffset); // good
                   if(tree->child[0]->isArray == true)
                   {
-
+                     
                   }
                   else
                   {
                      toffset = toffset - pCount;
                      emitComment((char *)"TOFF dec:", toffset); // good
-                     emitComment((char *)"Param");
+                     emitComment((char *)"Param", paramCount);
                      store = false;
                      treeTargetCode(tree->child[0]);
+                     //emitComment((char *)"HERE");
                      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push parameter"); // endOfFrame - 2
                   }
+                  tmp = tree->child[0]; // parameter
+                  emitComment((char *)"Param end");
+                  emitRM((char *)"LDA", 1, ghost, 1, (char *)"Ghost frame becomes new active frame");
+                  function = (treeNode *)st.lookup(tree->attr.name); // output
+                  emitRM((char *)"LDA", 3, 1, 7, (char *)"  Return address in ac");
+                  int intCurrent = emitSkip(0);
+                  emitRM((char *)"JMP", 7, function->offset - intCurrent, 7, (char *)"CALL", tree->attr.name); ///////////////////////////////////////
+                  emitRM((char *)"LDA", 3, 0, 2, (char *)"  Save the result in ac");
+                  toffset = ghost;
+                  emitComment((char *)"Call end", tree->attr.name);
                }
                else if(paramCount > 1)
                {
-
+                  emitRM((char *)"ST", 1, toffset, 1, (char *)"Store fp in ghost frame for", tree->attr.name);
                }
-               tmp = tree->child[0]; // parameter
-               emitComment((char *)"Param end");
-               emitRM((char *)"LDA", 1, ghost, 1, (char *)"Ghost frame becomes new active frame");
-               emitRM((char *)"LDA", 3, 1, 7, (char *)" Return address in ac");
+               //tmp = tree->child[0]; // parameter
+               //emitComment((char *)"Param end");
+               /*emitRM((char *)"LDA", 1, ghost, 1, (char *)"Ghost frame becomes new active frame");
+               function = (treeNode *)st.lookup(tree->attr.name); // output
+               emitRM((char *)"LDA", 3, 1, 7, (char *)"  Return address in ac");
                int intCurrent = emitSkip(0);
                emitRM((char *)"JMP", 7, function->offset - intCurrent, 7, (char *)"CALL", tree->attr.name); ///////////////////////////////////////
-               emitRM((char *)"LDA", 3, 0, 2, (char *)"Save the result in ac");
+               emitRM((char *)"LDA", 3, 0, 2, (char *)"  Save the result in ac");
                toffset = ghost;
-               emitComment((char *)"Call end", tree->attr.name);
+               emitComment((char *)"Call end", tree->attr.name);*/
                break;}
             default:
                printf("Unknown Exp LINE %d", tree->lineno);
@@ -543,6 +508,7 @@ void treeTargetCode(TreeNode* tree)
                //if(tree->child[1] != NULL)
                   //printf("IN FUNCK tree->child[0]->offset %i\n", tree->child[0]->offset);
                tree->offset = emitSkip(0);
+               emitComment((char *)"** ** ** ** ** ** ** ** ** ** ** **");
                emitComment((char *)"FUNCTION", tree->attr.name);
                emitComment((char*)"TOFF set:", toffset);
                emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
@@ -1203,7 +1169,7 @@ void codeGenIO()
    emitComment((char *)"** ** ** ** ** ** ** ** ** ** ** **");
 
    temp = st.lookupNode("outnl");
-   temp->offset = emitSkip(0) - 1;
+   temp->offset = emitSkip(0);
 
    emitComment((char *)"FUNCTION outnl");
    emitRM((char *)"ST", 3, -1, 1, (char *)"Store return address");
@@ -1242,12 +1208,6 @@ void codeGenMain(TreeNode *t)
    emitRM((char *)"JMP", 7, 0, 3, (char *)"Return");
    emitComment((char *)"END FUNCTION", t->attr.name);
 }
-
-void pushLeft(TreeNode *tree)
-{
-   //emitRM((char *)"LDA", 3, tree->child[0]->offset, isGlobal(tree->child[0]), (char *)"Load addres")
-}
-
 
 int isGlobal(TreeNode *tree)
 {
