@@ -191,7 +191,6 @@ void treeTargetCode(TreeNode* tree)
                int ghost = toffset;
                emitComment((char *)"COMPOUND");
                emitComment((char *)"TOFF set:", toffset);
-               emitComment((char *)"Compound Body");
                for(int i = 0; i <= 2; i++)
                {
                   if(tree != NULL)
@@ -199,15 +198,43 @@ void treeTargetCode(TreeNode* tree)
                      treeTargetCode(tree->child[i]);
                   }
                }
+               toffset = tree->memSize;
+               emitComment((char *)"Compound Body");
                toffset = ghost;
                emitComment((char *)"TOFF set:", toffset);
                emitComment((char *)"END COMPOUND");
                break;}
             case ReturnK:
-               //emitComment((char *)"Return");
+               emitComment((char *)"RETURN");
+               if(tree->child[0] != NULL)
+               {
+                  if(tree->isArray == true)
+                  {
+                     if(!strcmp(tree->child[0]->attr.name, "["))
+                     {
+
+                     }
+                     else
+                     {
+                        store = false;
+                        treeTargetCode(tree->child[0]);
+                        emitRM((char *)"LDA", 2, 0, 3, (char *)"Copy result to return register");
+                     }
+                  }
+                  else
+                  {
+                     store = false;
+                     treeTargetCode(tree->child[0]);
+                     emitRM((char *)"LDA", 2, 0, 3, (char *)"Copy result to return register");
+                  }
+               }
+               emitRM((char *)"LD", 3, -1, 1, (char *)"Load return address");
+               emitRM((char *)"LD", 1, 0, 1, (char *)"Adjust fp");
+               emitRM((char *)"JMP", 7, 0, 3, (char *)"Return");
                break;
             case BreakK:
-               //emitComment((char *)"Break");
+               emitComment((char *)"BREAK");
+               emitRM((char *)"JMP", 7, breakloc-emitSkip(0), 7, (char *)"break");
                break;
             case RangeK:
                //emitComment((char *)"Range");
@@ -300,19 +327,48 @@ void treeTargetCode(TreeNode* tree)
                      }
                      else
                      {
-                        emitRM((char *)"ST", tree->offset, 0, (char *)"Store variable", tree->attr.name);
+                        emitRM((char *)"ST", 3, tree->offset, 0, (char *)"Store variable", tree->attr.name);
                      }
                   }
                }
-               else
+               else // if store is false
                {
                   if(tree->memType == Global)
                   {
-                     emitRM((char *)"LD", 3, tree->offset, 0, (char *)"Load variable", tree->attr.name);
+                     if(tree->isArray)
+                     {
+
+                     }
+                     else
+                     {
+                        emitRM((char *)"LD", 3, tree->offset, 0, (char *)"Load variable", tree->attr.name);
+                     }
                   }
-                  else
+                  else if(tree->memType == Local)
                   {
-                     emitRM((char *)"LD", 3, tree->offset, 1, (char *)"Load variable", tree->attr.name);
+                     if(tree->isArray)
+                     {
+
+                     }
+                     else
+                     {
+                        emitRM((char *)"LD", 3, tree->offset, 1, (char *)"Load variable", tree->attr.name);
+                     }
+                  }
+                  else if(tree->memType == LocalStatic)
+                  {
+                     if(tree->isArray)
+                     {
+
+                     }
+                     else
+                     {
+
+                     }
+                  }
+                  else if(tree->memType == Parameter)
+                  {
+
                   }
                }
                break;
@@ -415,7 +471,7 @@ void treeTargetCode(TreeNode* tree)
                   toffset -= tree->memSize;
                   emitComment((char *)"TOFF dec:", toffset);
                }
-               /*if(tree->isArray == true)
+               if(tree->isArray == true)
                {
                   int ghost = toffset;
                   //emitComment((char *)"HERE +++++++++++++++++++++++\n");
@@ -441,7 +497,7 @@ void treeTargetCode(TreeNode* tree)
                   }
                   toffset -= tree->memSize;
                   emitComment((char *)"TOFF dec:", toffset);
-               }*/
+               }
                break;
             case FuncK:{
                Globals = true;
@@ -890,8 +946,36 @@ void binaryAsgnCode(TreeNode* tree)
    }
    else if(!strcmp(tree->attr.name, ":="))
    {
+      if(!strcmp(tree->child[0]->attr.name, "["))
+      {
+         
+         treeTargetCode(tree->child[0]->child[1]);
+         emitRM((char *)"ST", 3, toffset, 1, (char *)"Push index");
+         toffset--;
+         emitComment((char *)"TOFF dec:", toffset);
+         treeTargetCode(tree->child[1]);
+         toffset++;
+         emitComment((char *)"TOFF inc:", toffset);
+         emitRM((char *)"LD", 4, toffset, 1, (char *)"Pop index");
+         if(tree->child[0]->child[0]->memType == Global)
+         {
+            emitRM((char *)"LDA", 5, tree->child[0]->child[0]->offset, 0, (char *)"Load address of base of array", tree->child[0]->child[0]->attr.name);
+         }
+         else
+         {
+            emitRM((char *)"LDA", 5, tree->child[0]->child[0]->offset, 1, (char *)"Load address of base of array", tree->child[0]->child[0]->attr.name);
+         }
+         emitRO((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value", tree->child[0]->child[0]->attr.name);
+         emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable", tree->child[0]->child[0]->attr.name);
+      }
+      else
+      {
+         treeTargetCode(tree->child[1]);
+         store = true;
+         treeTargetCode(tree->child[0]);
+      }
       /*treeTargetCode(tree);*/
-      if(tree->child[0] != NULL)
+      /*if(tree->child[0] != NULL)
       {
          if(!strcmp(tree->child[0]->attr.name, "["))
          {
@@ -936,7 +1020,7 @@ void binaryAsgnCode(TreeNode* tree)
                   }
                }
                else
-               {
+               {*/
                   //printf("tree->child[0]->subkind.exp %i, name %s\n", tree->child[0]->subkind.exp, tree->child[0]->attr.name);
                   /*if(tree->child[1]->subkind.exp == OpK)
                   {
@@ -946,7 +1030,7 @@ void binaryAsgnCode(TreeNode* tree)
                   {
                      arrayOp = false;
                   }*/
-                  int index = emitSkip(0);
+                  /*int index = emitSkip(0);
                   if(tree->child[0]->child[1] != NULL)
                      treeTargetCode(tree->child[0]->child[1]);
                   store = true;
@@ -968,7 +1052,7 @@ void binaryAsgnCode(TreeNode* tree)
             store = true;
             treeTargetCode(tree->child[0]);
          }
-      }
+      }*/
    }
    else
    {
