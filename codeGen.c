@@ -14,6 +14,7 @@ bool store;
 bool arrayOp = false;
 int loopBegin = 0; // attempt to do break stuff
 int whileLoops[10]; // more break stuff
+int breakloc = 0;
 
 void codeGenGlobalsAndStatics(TreeNode *t){
    
@@ -94,7 +95,7 @@ void treeTargetCode(TreeNode* tree)
 {
    char* name;
    int dif, cur, dif2;
-   int breakloc, skiploc;
+   int skiploc;
 
    TreeNode *tmp = NULL;
 
@@ -107,11 +108,27 @@ void treeTargetCode(TreeNode* tree)
             case NullK:
                emitComment((char *)"NULL");
                break;
-            case IfK:
-               emitComment((char *)"If");
-               //dif = emitSkip(1);
-
+            case IfK:{
+               store = false;
+               emitComment((char *)("IF"));
+               treeTargetCode(tree->child[0]);
+               emitComment((char *)("THEN"));
+               int elseLocation = 0;
+               int thenLocation = emitSkip(1);
+               treeTargetCode(tree->child[1]);
                if(tree->child[2] != NULL)
+               {
+                  elseLocation = emitSkip(1);
+               }
+               backPatchAJumpToHere((char *)("JZR"),3,thenLocation, (char *)("Jump around the THEN if false [backpatch]"));
+               if(tree->child[2] != NULL)
+               {
+                  emitComment((char *)("ELSE"));
+                  treeTargetCode(tree->child[2]);
+                  backPatchAJumpToHere((char *)("JMP"),7,elseLocation, (char *)("Jump around the ELSE [backpatch]"));
+               }
+               emitComment((char *)("END IF"));
+               /*if(tree->child[2] != NULL)
                {
                   tree->elseStmt = true;
                }
@@ -148,12 +165,33 @@ void treeTargetCode(TreeNode* tree)
                   // jump to else location
                   emitRO((char *)"JZR", 3, tree->temp2 - tree->temp1, 7, (char *)"Jump around the THEN if false [backpatch]");
                   emitNewLoc(tree->temp2);
-               }
-
-               break;
-            case WhileK:
-               emitComment((char *)"While");
-               whileLoops[loopBegin] = emitSkip(0);
+               }*/
+               break;}
+            case WhileK:{
+               int backpatch = emitSkip(0);
+               store = false;
+               //printf("main address %p\n", (void *) &mainLookup);
+               emitComment((char *)("WHILE"));
+               treeTargetCode(tree->child[0]);
+               int backBreak = breakloc;
+               breakloc = emitSkip(0);
+               //toffset++;
+               //emitComment((char *)("TOFF inc:"), toffset);
+               //emitRM((char *)"LD",4,tree->memOffset,1,(char *)("Pop left into acl"));
+               //emitRO((char *)"TLT",3,4,3,(char *)("Op"), (char *)tree->child[0]->attr.name);
+               emitRM((char *)"JNZ",3,1,7,(char *)("Jump to while part"));
+               emitComment((char *)("DO"));
+               int whileJump = emitSkip(1);
+               treeTargetCode(tree->child[1]);
+               //toffset--;
+               //emitComment((char *)("TOFF dec:"), toffset);
+               emitRM((char *)"JMP",7,backpatch-emitSkip(0)-1,7,(char *)("go to beginning of loop"));
+               int jumpLocation = emitSkip(0);
+               backPatchAJumpToHere(whileJump, (char *)("Jump past loop [backpatch]"));
+               breakloc = backBreak;
+               emitNewLoc(jumpLocation);
+               emitComment((char *)("END WHILE"));
+               /*whileLoops[loopBegin] = emitSkip(0);
                loopBegin++;
                tree->offset = emitSkip(0);
 
@@ -182,8 +220,8 @@ void treeTargetCode(TreeNode* tree)
                // return
                emitSkip(tree->temp2 - emitSkip(0));
 
-               loopBegin--;
-               break;
+               loopBegin--;*/
+               break;}
             case ForK:
                //emitComment((char *)"For");
                break;
@@ -234,7 +272,7 @@ void treeTargetCode(TreeNode* tree)
                break;
             case BreakK:
                emitComment((char *)"BREAK");
-               emitRM((char *)"JMP", 7, breakloc-emitSkip(0), 7, (char *)"break");
+               emitRM((char *)"JMP", 7, breakloc - emitSkip(0), 7, (char *)"break");
                break;
             case RangeK:
                //emitComment((char *)"Range");
@@ -417,7 +455,7 @@ void treeTargetCode(TreeNode* tree)
                else if(paramCount == 1)
                {
                   toffset = toffset - pCount;
-                  emitComment((char *)"TOFF dec:", toffset);
+                  emitComment((char *)"TOFF dec:", toffset); // good
                   if(tree->child[0]->isArray == true)
                   {
 
@@ -425,7 +463,7 @@ void treeTargetCode(TreeNode* tree)
                   else
                   {
                      toffset = toffset - pCount;
-                     emitComment((char *)"TOFF dec:", toffset);
+                     emitComment((char *)"TOFF dec:", toffset); // good
                      emitComment((char *)"Param");
                      store = false;
                      treeTargetCode(tree->child[0]);
@@ -468,8 +506,8 @@ void treeTargetCode(TreeNode* tree)
                      treeTargetCode(tree->child[0]);
                      emitRM((char *)"ST", 3, toffset, 1, (char *)"store variable", tree->attr.name);
                   }
-                  toffset -= tree->memSize;
-                  emitComment((char *)"TOFF dec:", toffset);
+                  //toffset -= tree->memSize;
+                  //emitComment((char *)"TOFF dec:", toffset);
                }
                if(tree->isArray == true)
                {
@@ -612,7 +650,7 @@ void binaryOpCode(TreeNode* tree)
    if(!strcmp(tree->attr.name, "or"))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -629,7 +667,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "and"))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -646,7 +684,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "<"))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -663,7 +701,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, ">"))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -680,7 +718,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "="))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -697,7 +735,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, ">="))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -714,7 +752,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "<="))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -731,7 +769,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "><"))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -748,7 +786,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "+")) ///////////////////////////
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -766,7 +804,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "-")) ///////////////////////////
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -784,7 +822,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "*")) //////////////////////////
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -802,7 +840,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "/")) /////////////////////////
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       if(arrayOp == true)
       {
          toffset--;
@@ -820,7 +858,7 @@ void binaryOpCode(TreeNode* tree)
    else if(!strcmp(tree->attr.name, "%"))
    {
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Save left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
       treeTargetCode(tree->child[1]);
       emitRM((char *)"LD", 4, toffset, 1, (char *)"Load left into ac1");
       emitRO((char *)"DIV", 5, 4, 3, (char *)"Op %");
@@ -837,7 +875,7 @@ void binaryOpCode(TreeNode* tree)
          emitRM((char *)"LDA", 3, tree->child[0]->offset, isGlobal(tree->child[0]), (char *)"Load address of base of array");
       }
       
-      emitRM((char *)"ST", 3, toffset, 1, (char *)"Push left side");
+      emitRM((char *)"ST", 3, toffset, 1, (char *)"   Push left side");
       /*if(arrayOp == true)
       {
          toffset--;
@@ -914,7 +952,10 @@ void binaryAsgnCode(TreeNode* tree)
    int fp;
    if(!strcmp(tree->attr.name, "+="))
    {
-      /*fp = frame(tree);
+      /*if(tree->child[0]->subkind.exp == IdK && tree->child[1]->subkind.exp == IdK)
+      {
+         emitRM((char *)"LD", 3, tree->child[1]->)
+      }
       treeTargetCode(tree->child[1]);
       emitRM((char *)"LD", 4, tree->child[0]->offset, fp, (char *) "Load LHS");
       emitRO((char *)"ADD", 3, 4, 3, (char *)"Op +=");
@@ -922,7 +963,7 @@ void binaryAsgnCode(TreeNode* tree)
    }
    else if(!strcmp(tree->attr.name, "-="))
    {
-      /*fp = frame(tree);
+      /*
       treeTargetCode(tree->child[1]);
       emitRM((char *)"LD", 4, tree->child[0]->offset, fp, (char *) "Load LHS");
       emitRO((char *)"SUB", 3, 4, 3, (char *)"Op -=");
@@ -930,7 +971,7 @@ void binaryAsgnCode(TreeNode* tree)
    }
    else if(!strcmp(tree->attr.name, "*="))
    {
-      /*fp = frame(tree);
+      /*
       treeTargetCode(tree->child[1]);
       emitRM((char *)"LD", 4, tree->child[0]->offset, fp, (char *) "Load LHS");
       emitRO((char *)"MUL", 3, 4, 3, (char *)"Op *=");
@@ -938,7 +979,7 @@ void binaryAsgnCode(TreeNode* tree)
    }
    else if(!strcmp(tree->attr.name, "/="))
    {
-      /*fp = frame(tree);
+      /*
       treeTargetCode(tree->child[1]);
       emitRM((char *)"LD", 4, tree->child[0]->offset, fp, (char *) "Load LHS");
       emitRO((char *)"DIV", 3, 4, 3, (char *)"Op /=");
