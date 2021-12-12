@@ -106,19 +106,23 @@
 * OpK
 * EXPRESSION
  47:    LDC  3,755(6)	Load integer const 
- 48:     ST  3,-8(1)	Push left side 
+ 48:     ST  3,-7(1)	Push left side 
+* TOFF dec:///// -8
 * EXPRESSION
 * OpK
 * EXPRESSION
  49:    LDC  3,88(6)	Load integer const 
- 50:     ST  3,-9(1)	Push left side 
+ 50:     ST  3,-8(1)	Push left side 
+* TOFF dec://// -9
 * EXPRESSION
  51:    LDC  3,3(6)	Load integer const 
- 52:     LD  4,-9(1)	Pop left into ac1 
+* TOFF inc:///// -8
+ 52:     LD  4,-8(1)	Pop left into ac1 
  53:    MUL  3,4,3	Op * 
- 54:     LD  4,-9(1)	Pop left into ac1 
+* TOFF inc:///// -7
+ 54:     LD  4,-7(1)	Pop left into ac1 
  55:    ADD  3,4,3	Op + 
- 56:     ST  3,-9(1)	Push parameter 
+ 56:     ST  3,-7(1)	Push parameter 
 * Param end
  57:    LDA  1,-5(1)	Ghost frame becomes new active frame 
  58:    LDA  3,1(7)	  Return address in ac 
@@ -137,17 +141,21 @@
 * OpK
 * EXPRESSION
  62:    LDC  3,755(6)	Load integer const 
- 63:     ST  3,-9(1)	Push left side 
+ 63:     ST  3,-7(1)	Push left side 
+* TOFF dec://// -8
 * EXPRESSION
  64:    LDC  3,88(6)	Load integer const 
- 65:     LD  4,-9(1)	Pop left into ac1 
+* TOFF inc:///// -7
+ 65:     LD  4,-7(1)	Pop left into ac1 
  66:    MUL  3,4,3	Op * 
- 67:     ST  3,-9(1)	Push left side 
+ 67:     ST  3,-7(1)	Push left side 
+* TOFF dec:///// -8
 * EXPRESSION
  68:    LDC  3,3(6)	Load integer const 
- 69:     LD  4,-9(1)	Pop left into ac1 
+* TOFF inc:///// -7
+ 69:     LD  4,-7(1)	Pop left into ac1 
  70:    ADD  3,4,3	Op + 
- 71:     ST  3,-9(1)	Push parameter 
+ 71:     ST  3,-7(1)	Push parameter 
 * Param end
  72:    LDA  1,-5(1)	Ghost frame becomes new active frame 
  73:    LDA  3,1(7)	  Return address in ac 
@@ -166,17 +174,17 @@
 * OpK
 * EXPRESSION
  77:    LDC  3,755(6)	Load integer const 
- 78:     ST  3,-9(1)	Push left side 
+ 78:     ST  3,-7(1)	Push left side 
 * EXPRESSION
  79:    LDC  3,88(6)	Load integer const 
- 80:     LD  4,-9(1)	Load left into ac1 
+ 80:     LD  4,-7(1)	Load left into ac1 
  81:    SUB  3,4,3	Op - 
- 82:     ST  3,-9(1)	Push left side 
+ 82:     ST  3,-7(1)	Push left side 
 * EXPRESSION
  83:    LDC  3,3(6)	Load integer const 
- 84:     LD  4,-9(1)	Load left into ac1 
+ 84:     LD  4,-7(1)	Load left into ac1 
  85:    SUB  3,4,3	Op - 
- 86:     ST  3,-9(1)	Push parameter 
+ 86:     ST  3,-7(1)	Push parameter 
 * Param end
  87:    LDA  1,-5(1)	Ghost frame becomes new active frame 
  88:    LDA  3,1(7)	  Return address in ac 
@@ -195,17 +203,17 @@
 * OpK
 * EXPRESSION
  92:    LDC  3,755(6)	Load integer const 
- 93:     ST  3,-9(1)	Push left side 
+ 93:     ST  3,-7(1)	Push left side 
 * EXPRESSION
  94:    LDC  3,88(6)	Load integer const 
- 95:     LD  4,-9(1)	Load left into ac1 
+ 95:     LD  4,-7(1)	Load left into ac1 
  96:    DIV  3,4,3	Op / 
- 97:     ST  3,-9(1)	Push left side 
+ 97:     ST  3,-7(1)	Push left side 
 * EXPRESSION
  98:    LDC  3,3(6)	Load integer const 
- 99:     LD  4,-9(1)	Load left into ac1 
+ 99:     LD  4,-7(1)	Load left into ac1 
 100:    DIV  3,4,3	Op / 
-101:     ST  3,-9(1)	Push parameter 
+101:     ST  3,-7(1)	Push parameter 
 * Param end
 102:    LDA  1,-5(1)	Ghost frame becomes new active frame 
 103:    LDA  3,1(7)	  Return address in ac 
@@ -224,24 +232,30 @@
 * OpK
 * EXPRESSION
 107:    LDC  3,755(6)	Load integer const 
-108:     ST  3,-9(1)	Push left side 
+108:     ST  3,-7(1)	Push left side 
+* TOFF dec://// -8
 * EXPRESSION
 109:    LDC  3,88(6)	Load integer const 
-110:     LD  4,-9(1)	Pop left into ac1 
+* TOFF inc:///// -7
+110:     LD  4,-7(1)	Pop left into ac1 
 111:    MUL  3,4,3	Op * 
-112:     ST  3,-9(1)	Push left side 
+112:     ST  3,-7(1)	Push left side 
+* TOFF dec:///// -8
 * EXPRESSION
 * OpK
 * EXPRESSION
 113:    LDC  3,3(6)	Load integer const 
-114:     ST  3,-10(1)	Push left side 
+114:     ST  3,-8(1)	Push left side 
+* TOFF dec://// -9
 * EXPRESSION
 115:    LDC  3,3(6)	Load integer const 
-116:     LD  4,-10(1)	Pop left into ac1 
+* TOFF inc:///// -8
+116:     LD  4,-8(1)	Pop left into ac1 
 117:    MUL  3,4,3	Op * 
-118:     LD  4,-10(1)	Pop left into ac1 
+* TOFF inc:///// -7
+118:     LD  4,-7(1)	Pop left into ac1 
 119:    ADD  3,4,3	Op + 
-120:     ST  3,-10(1)	Push parameter 
+120:     ST  3,-7(1)	Push parameter 
 * Param end
 121:    LDA  1,-5(1)	Ghost frame becomes new active frame 
 122:    LDA  3,1(7)	  Return address in ac 
@@ -260,21 +274,21 @@
 * OpK
 * EXPRESSION
 126:    LDC  3,755(6)	Load integer const 
-127:     ST  3,-9(1)	Push left side 
+127:     ST  3,-7(1)	Push left side 
 * EXPRESSION
 128:    LDC  3,88(6)	Load integer const 
-129:     LD  4,-9(1)	Load left into ac1 
+129:     LD  4,-7(1)	Load left into ac1 
 130:    DIV  5,4,3	Op % 
 131:    MUL  5,5,3	 
 132:    SUB  3,4,5	 
-133:     ST  3,-9(1)	Push left side 
+133:     ST  3,-7(1)	Push left side 
 * EXPRESSION
 134:    LDC  3,3(6)	Load integer const 
-135:     LD  4,-9(1)	Load left into ac1 
+135:     LD  4,-7(1)	Load left into ac1 
 136:    DIV  5,4,3	Op % 
 137:    MUL  5,5,3	 
 138:    SUB  3,4,5	 
-139:     ST  3,-9(1)	Push parameter 
+139:     ST  3,-7(1)	Push parameter 
 * Param end
 140:    LDA  1,-5(1)	Ghost frame becomes new active frame 
 141:    LDA  3,1(7)	  Return address in ac 
@@ -295,19 +309,23 @@
 * EXPRESSION
 146:    LDC  3,755(6)	Load integer const 
 147:    NEG  3,3,3	Op Unary - 
-148:     ST  3,-8(1)	Push left side 
+148:     ST  3,-7(1)	Push left side 
+* TOFF dec:///// -8
 * EXPRESSION
 * OpK
 * EXPRESSION
 149:    LDC  3,88(6)	Load integer const 
-150:     ST  3,-9(1)	Push left side 
+150:     ST  3,-8(1)	Push left side 
+* TOFF dec://// -9
 * EXPRESSION
 151:    LDC  3,3(6)	Load integer const 
-152:     LD  4,-9(1)	Pop left into ac1 
+* TOFF inc:///// -8
+152:     LD  4,-8(1)	Pop left into ac1 
 153:    MUL  3,4,3	Op * 
-154:     LD  4,-9(1)	Pop left into ac1 
+* TOFF inc:///// -7
+154:     LD  4,-7(1)	Pop left into ac1 
 155:    ADD  3,4,3	Op + 
-156:     ST  3,-9(1)	Push parameter 
+156:     ST  3,-7(1)	Push parameter 
 * Param end
 157:    LDA  1,-5(1)	Ghost frame becomes new active frame 
 158:    LDA  3,1(7)	  Return address in ac 

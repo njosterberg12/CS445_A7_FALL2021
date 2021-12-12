@@ -73,6 +73,7 @@
  40:     ST  3,0(1)	save size of array x
  41:    LDC  3,4(6)	  load size of array y
  42:     ST  3,-4(1)	save size of array y
+* ** ** ** ** ** ** ** ** ** ** ** **
 * FUNCTION main
 * TOFF set: -2
  43:     ST  3,-1(1)	Store return address 
@@ -109,13 +110,13 @@
  58:     ST  1,-2(1)	Store fp in ghost frame for output
 * TOFF dec: -3
 * TOFF dec: -4
-* Param
+* Param 1
 * EXPRESSION
 * OpK
 * EXPRESSION
 * OpK
  59:    LDA  3,-1(0)	Load address of base of array 
- 60:     ST  3,-4(1)	Push left side 
+ 60:     ST  3,-4(1)	   Push left side 
 * TOFF dec: -5
 * EXPRESSION
  61:    LDC  3,2(6)	Load integer const 
@@ -123,37 +124,39 @@
  62:     LD  4,-4(1)	Pop left into ac1 
  63:    SUB  3,4,3	Compute location from index 
  64:     LD  3,0(3)	Load array element 
- 65:     ST  3,-4(1)	Save left side 
-* TOFF dec: -5
+ 65:     ST  3,-4(1)	Push left side 
+* TOFF dec:///// -5
+* TOFF dec: -6
 * EXPRESSION
 * OpK
  66:    LDA  3,-5(0)	Load address of base of array 
- 67:     ST  3,-5(1)	Push left side 
-* TOFF dec: -6
+ 67:     ST  3,-6(1)	   Push left side 
+* TOFF dec: -7
 * EXPRESSION
  68:    LDC  3,1(6)	Load integer const 
-* TOFF inc: -5
- 69:     LD  4,-5(1)	Pop left into ac1 
+* TOFF inc: -6
+ 69:     LD  4,-6(1)	Pop left into ac1 
  70:    SUB  3,4,3	Compute location from index 
  71:     LD  3,0(3)	Load array element 
-* TOFF inc: -4
+* TOFF inc: -5
+* TOFF inc:///// -4
  72:     LD  4,-4(1)	Pop left into ac1 
  73:    ADD  3,4,3	Op + 
  74:     ST  3,-4(1)	Push parameter 
 * Param end
  75:    LDA  1,-2(1)	Ghost frame becomes new active frame 
- 76:    LDA  3,1(7)	 Return address in ac 
+ 76:    LDA  3,1(7)	  Return address in ac 
  77:    JMP  7,-72(7)	CALL output
- 78:    LDA  3,0(2)	Save the result in ac 
+ 78:    LDA  3,0(2)	  Save the result in ac 
 * Call end output
 * EXPRESSION
 * CALL outnl
  79:     ST  1,-2(1)	Store fp in ghost frame for outnl
 * Param end
  80:    LDA  1,-2(1)	Ghost frame becomes new active frame 
- 81:    LDA  3,1(7)	 Return address in ac 
+ 81:    LDA  3,1(7)	  Return address in ac 
  82:    JMP  7,-49(7)	CALL outnl
- 83:    LDA  3,0(2)	Save the result in ac 
+ 83:    LDA  3,0(2)	  Save the result in ac 
 * Call end outnl
 * Compound Body
 * TOFF set: -2
