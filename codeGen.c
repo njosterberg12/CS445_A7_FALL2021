@@ -957,14 +957,16 @@ void unaryAsgnCode(TreeNode* tree)
    }
    else if(!strcmp(tree->attr.name, "++"))
    {
+      store = false;
       treeTargetCode(tree->child[0]);
       emitRM((char *)"LDA", 3, 1, 3, (char *)"Inc");
       emitRM((char *)"ST", 3, tree->child[0]->offset, 1, (char *)"Store var ++++++++++++++++++++++");
    }
    else if(!strcmp(tree->attr.name, "--"))
    {
+      store = false;
       treeTargetCode(tree->child[0]);
-      emitRM((char *)"LDA", 3, 1, 3, (char *)"Dec");
+      emitRM((char *)"LDA", 3, -1, 3, (char *)"Dec");
       emitRM((char *)"ST", 3, tree->child[0]->offset, 1, (char *)"Store var ----------------------");
    }
    else
@@ -1030,6 +1032,7 @@ void binaryAsgnCode(TreeNode* tree)
       }
       else
       {
+         //store = true;
          treeTargetCode(tree->child[1]);
          store = true;
          treeTargetCode(tree->child[0]);
@@ -1089,8 +1092,8 @@ void binaryAsgnCode(TreeNode* tree)
                   else
                   {
                      arrayOp = false;
-                  }*/
-                  /*int index = emitSkip(0);
+                  }
+                  int index = emitSkip(0);
                   if(tree->child[0]->child[1] != NULL)
                      treeTargetCode(tree->child[0]->child[1]);
                   store = true;
@@ -1100,10 +1103,10 @@ void binaryAsgnCode(TreeNode* tree)
                   emitRM((char *)"LD", 4, toffset, 1, (char *)"Pop index");
                   emitRM((char *)"LDA", 5, tree->child[0]->child[0]->offset, isGlobal(tree->child[0]->child[0]), (char *)"Load address of base of array", tree->child[0]->child[0]->attr.name); // pop index ---> toffset
                   emitRO((char *)"SUB", 5, 5, 4, (char *)"Compute offset of value");
-                  emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable", tree->child[0]->child[0]->attr.name);
+                  emitRM((char *)"ST", 3, 0, 5, (char *)"Store variable", tree->child[0]->child[0]->attr.name);*/
                   // SUB 5 5 4
                   // ST 3 0 5
-               }
+               /*}
             }
          }
          else
